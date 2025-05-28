@@ -5,75 +5,616 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-  <title>Ethereum Todo List</title>
+  <title>CryptoTasks - Blockchain Powered Todo List</title>
 
   <!-- Bootstrap -->
   <link href="vendor/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-  <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
   <style>
-    main {
-      margin-top: 60px;
+    :root {
+      --primary-color: #6c5ce7;
+      --accent-color: #fd79a8;
+      --success-color: #00b894;
+      --warning-color: #fdcb6e;
+      --danger-color: #d63031;
+      --dark-color: #2d3436;
+      --light-color: #f5f6fa;
+      --card-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      --hover-transform: translateY(-5px);
     }
-
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      color: var(--dark-color);
+    }
+    
+    .navbar {
+      background: linear-gradient(90deg, var(--primary-color), var(--accent-color)) !important;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    }
+    
+    .navbar-brand {
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    
+    main {
+      margin-top: 80px;
+      padding-bottom: 40px;
+    }
+    
+    #loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 300px;
+    }
+    
+    .loader-spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid var(--light-color);
+      border-top: 5px solid var(--primary-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 15px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
     #content {
       display: none;
     }
-
-    form {
-      width: 350px;
-      margin-bottom: 10px;
+    
+    .task-card {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 25px;
+      transition: all 0.3s ease;
     }
-
-    ul {
-      margin-bottom: 0px;
+    
+    .task-card:hover {
+      transform: var(--hover-transform);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.15);
     }
-
+    
+    .task-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 15px;
+    }
+    
+    .task-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 0;
+    }
+    
+    .task-count {
+      background: var(--primary-color);
+      color: white;
+      border-radius: 50px;
+      padding: 5px 15px;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+    
+    .task-form {
+      width: 100%;
+      margin-bottom: 25px;
+      position: relative;
+    }
+    
+    .task-input {
+      border-radius: 15px;
+      padding: 15px 20px;
+      font-size: 1rem;
+      border: none;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      width: 100%;
+      resize: vertical;
+      min-height: 60px;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    .task-input:focus {
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+      outline: none;
+      border-left: 3px solid var(--primary-color);
+    }
+    
+    .task-submit {
+      position: absolute;
+      right: 5px;
+      top: 5px;
+      background: var(--primary-color);
+      border: none;
+      color: white;
+      border-radius: 50px;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .task-submit:hover {
+      background: var(--accent-color);
+    }
+    
+    .task-list {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .task-item {
+      background: white;
+      border-radius: 10px;
+      padding: 15px 20px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    
+    .task-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    }
+    
+    .task-item input[type="checkbox"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid var(--primary-color);
+      outline: none;
+      margin-right: 15px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .task-item input[type="checkbox"]:checked {
+      background-color: var(--success-color);
+      border-color: var(--success-color);
+    }
+    
+    .task-item input[type="checkbox"]:checked:after {
+      content: '\2713';
+      position: absolute;
+      color: white;
+      font-size: 14px;
+      top: 1px;
+      left: 6px;
+    }
+    
+    .task-item .content {
+      flex-grow: 1;
+      font-size: 1.1rem;
+      color: var(--dark-color);
+      transition: all 0.2s ease;
+    }
+    
+    #completedTaskList .task-item {
+      background-color: rgba(255,255,255,0.7);
+    }
+    
     #completedTaskList .content {
-      color: grey;
+      color: #95a5a6;
       text-decoration: line-through;
+    }
+    
+    .completed-header {
+      margin-top: 30px;
+      color: var(--success-color);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+    }
+    
+    .completed-header i {
+      margin-right: 10px;
+    }
+    
+    .account-pill {
+      background: rgba(255,255,255,0.2);
+      border-radius: 50px;
+      padding: 8px 15px;
+      font-size: 0.8rem;
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+    
+    .account-pill:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    
+    .account-pill i {
+      margin-right: 8px;
+      font-size: 0.9rem;
+    }
+    
+    .metamask-badge {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border-radius: 50px;
+      padding: 5px 15px;
+      color: var(--dark-color);
+      font-weight: 600;
+      font-size: 0.9rem;
+      box-shadow: var(--card-shadow);
+      margin-top: 15px;
+    }
+    
+    .metamask-badge img {
+      width: 25px;
+      margin-right: 10px;
+    }
+    
+    .metamask-status {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+    
+    .status-connected {
+      background-color: var(--success-color);
+    }
+    
+    .status-disconnected {
+      background-color: var(--danger-color);
+    }
+    
+    /* Special styling for the known account */
+    .known-account {
+      font-weight: 600;
+      color: #fff;
+    }
+    
+    .known-account-pill {
+      background: linear-gradient(45deg, #6c5ce7, #00b894);
+      box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+    }
+    
+    .verified-badge {
+      display: inline-flex;
+      margin-left: 5px;
+      color: #fdcb6e;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+    
+    /* Animation for tasks */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animated {
+      animation: fadeIn 0.5s ease forwards;
+    }
+    
+    /* Task action buttons */
+    .task-actions {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+      opacity: 0;
+      transition: all 0.3s ease;
+      transform: translateX(10px);
+    }
+    
+    .task-item:hover .task-actions {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    
+    .btn-edit, .btn-delete {
+      background: none;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    
+    .btn-edit {
+      color: var(--primary-color);
+    }
+    
+    .btn-delete {
+      color: var(--danger-color);
+    }
+    
+    .btn-edit:hover {
+      background-color: rgba(108, 92, 231, 0.1);
+      transform: scale(1.1);
+    }
+    
+    .btn-delete:hover {
+      background-color: rgba(214, 48, 49, 0.1);
+      transform: scale(1.1);
+    }
+    
+    .btn-edit:active, .btn-delete:active {
+      transform: scale(0.9);
+    }
+    
+    .btn-edit::after, .btn-delete::after {
+      content: attr(title);
+      position: absolute;
+      bottom: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--dark-color);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 0.7rem;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-edit:hover::after, .btn-delete:hover::after {
+      opacity: 0.9;
+      visibility: visible;
+      bottom: -30px;
+    }
+    
+    /* Edit modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    
+    .modal-content {
+      background-color: white;
+      border-radius: 15px;
+      padding: 25px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transform: translateY(-20px);
+      transition: transform 0.3s ease;
+    }
+    
+    /* Task editing and deleting animations */
+    .saving-task {
+      position: relative;
+      animation: pulse 1.5s infinite;
+    }
+    
+    .deleting-task {
+      transition: all 0.5s ease-out;
+    }
+    
+    @keyframes pulse {
+      0% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.6;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+    
+    .modal-overlay.active .modal-content {
+      transform: translateY(0);
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin: 0;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--dark-color);
+    }
+    
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .modal-btn {
+      padding: 8px 20px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    
+    .modal-btn-cancel {
+      background-color: #f5f6fa;
+      color: var(--dark-color);
+    }
+    
+    .modal-btn-save {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    .modal-btn-save:hover {
+      background-color: var(--accent-color);
     }
   </style>
 </head>
 
 <body>
-  <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-    <a class="navbar-brand col-sm-3 col-md-2 mr-0" style="color: white;"
-      target="_blank">Ethereum Todo List</a>
-    <ul class="navbar-nav px-3">
-      <li class="nav-item text-nowrap d-none d-sm-none d-sm-block">
-        <small><a class="nav-link" href="#"><span id="account"></span></a></small>
-      </li>
-    </ul>
-  </nav>
-  <div class="container-fluid">
-    <div class="row">
-      <main role="main" class="col-lg-12 d-flex justify-content-center">
-        <div id="loader" class="text-center">
-          <p class="text-center">Loading...</p>
+  <!-- Modern gradient navbar -->
+  <nav class="navbar navbar-dark fixed-top p-0 shadow">
+    <div class="container">
+      <a class="navbar-brand" href="#">
+        <i class="fas fa-tasks"></i> CryptoTasks
+      </a>
+      <div class="d-flex align-items-center">
+        <button id="connect-button" class="btn btn-sm btn-light mr-3" onclick="App.reconnectMetaMask()">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" style="width: 20px; margin-right: 5px;">
+          Connect MetaMask
+        </button>
+        <div class="account-pill" style="display: none;" id="account-container">
+          <i class="fas fa-wallet"></i>
+          <span id="account"></span>
         </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="row justify-content-center">
+      <main role="main" class="col-lg-8">
+        <!-- Loader with spinner -->
+        <div id="loader" class="text-center">
+          <div class="loader-spinner"></div>
+          <p>Connecting to blockchain...</p>
+          <div class="metamask-badge">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" />
+            <span>Waiting for MetaMask connection</span>
+          </div>
+        </div>
+
+        <!-- Main content -->
         <div id="content">
-          <form onSubmit="App.createTask(); return false;">
-            <input id="newTask" type="text" class="form-control" placeholder="Add task..." required>
-            <input type="submit" hidden="">
-          </form>
-          <ul id="taskList" class="list-unstyled">
-            <div class="taskTemplate" class="checkbox" style="display: none">
-              <label>
+          <!-- Edit Task Modal -->
+          <div class="modal-overlay" id="editTaskModal">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h3 class="modal-title">Edit Task</h3>
+                <button class="modal-close" id="closeEditModal" type="button">&times;</button>
+              </div>
+              <form id="editTaskForm" onSubmit="App.updateTask(); return false;">
+                <input type="hidden" id="editTaskId" value="">
+                <input type="text" class="task-input" id="editTaskContent" placeholder="Update task content..." required>
+                <div class="modal-actions">
+                  <button type="button" class="modal-btn modal-btn-cancel" id="cancelEditTask">Cancel</button>
+                  <button type="submit" class="modal-btn modal-btn-save" id="saveEditTask">Save Changes</button>
+                </div>
+              </form>
+            </div>
+          </div>
+          
+          <div class="task-card">
+            <div class="task-header">
+              <h2 class="task-title">My Blockchain Tasks</h2>
+              <span class="task-count" id="taskCounter">0 tasks</span>
+            </div>
+
+            <!-- Task form -->
+            <form class="task-form" onSubmit="App.createTask(); return false;">
+              <input id="newTask" type="text" class="task-input" placeholder="What needs to be done?" required>
+              <button type="submit" class="task-submit">
+                <i class="fas fa-plus"></i> Add Task
+              </button>
+            </form>
+            
+            <div id="task-operations-indicator" style="display: none;" class="text-center my-3">
+              <div class="spinner-border text-primary" role="status" style="width: 1.5rem; height: 1.5rem;">
+                <span class="sr-only">Loading...</span>
+              </div>
+              <span class="ml-2" id="operation-text">Processing transaction...</span>
+            </div>
+
+            <!-- Pending tasks -->
+            <h5><i class="fas fa-clipboard-list"></i> Pending Tasks</h5>
+            <ul id="taskList" class="task-list">
+              <div class="taskTemplate task-item" style="display: none">
                 <input type="checkbox" />
                 <span class="content">Task content goes here...</span>
-              </label>
+                <div class="task-actions">
+                  <button class="btn-edit" title="Edit Task">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete" title="Delete Task">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </div>
+              </div>
+            </ul>
+
+            <!-- Completed tasks -->
+            <h5 class="completed-header"><i class="fas fa-check-circle"></i> Completed Tasks</h5>
+            <ul id="completedTaskList" class="task-list">
+            </ul>
+
+            <!-- MetaMask Status -->
+            <div class="metamask-badge">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" />
+              <div>
+                <span class="metamask-status status-connected"></span>
+                <span id="connection-status">Connected to Ethereum network</span>
+              </div>
             </div>
-          </ul>
-          <ul id="completedTaskList" class="list-unstyled">
-          </ul>
+          </div>
         </div>
       </main>
     </div>
